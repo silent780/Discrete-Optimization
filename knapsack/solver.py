@@ -29,7 +29,9 @@ def solve_it(input_data):
     weight = 0
     taken = [0] * len(items)
 
+    # method 1 : greedy algorithm
     # sort items by value/weight ratio
+    """
     items.sort(key=lambda item: item.value / item.weight, reverse=True)
 
     for item in items:
@@ -37,6 +39,29 @@ def solve_it(input_data):
             taken[item.index] = 1
             value += item.value
             weight += item.weight
+    """
+
+    # method 2 : dynamic programming
+
+    dp = [[0 for _ in range(capacity + 1)] for _ in range(item_count + 1)]
+    for i in range(1, item_count + 1):
+        for j in range(1, capacity + 1):
+            if items[i - 1].weight <= j:
+                if (
+                    dp[i - 1][j]
+                    < dp[i - 1][j - items[i - 1].weight] + items[i - 1].value
+                ):
+                    taken[i - 1] = 1
+                    dp[i][j] = dp[i - 1][j - items[i - 1].weight] + items[i - 1].value
+                else:
+                    dp[i][j] = dp[i - 1][j]
+            else:
+                dp[i][j] = dp[i - 1][j]
+    value = dp[item_count][capacity]
+    # print the results
+    print("value = ", value)
+    print("weight = ", weight)
+    print("taken = ", taken)
 
     # prepare the solution in the specified output format
     output_data = str(value) + " " + str(0) + "\n"
