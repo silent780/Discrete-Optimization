@@ -13,11 +13,12 @@
 # here put the import lib
 from collections import namedtuple
 from typing import List
+from ortools_solver import ortools_solver
 
 Item = namedtuple("Item", ["index", "value", "weight"])
 
 
-def greedy_solver(items, capacity):
+def greedy_solver(items: List[Item], capacity: int) -> [int, int, List]:
     value = 0
     weight = 0
     taken = [0] * len(items)
@@ -30,7 +31,7 @@ def greedy_solver(items, capacity):
     return value, weight, taken
 
 
-def dp_solver(items, capacity) -> [int, List]:
+def dp_solver(items: List[Item], capacity: int) -> [int, int, List]:
     """
     this is a function for solving knapsack problem using dynamic programming
     """
@@ -63,6 +64,17 @@ def dp_solver(items, capacity) -> [int, List]:
             weight += weights[i - 1]
         i -= 1
     value = dp[n][capacity]
+    return value, weight, taken
+
+
+def bb_solver(items: List[Item], capacity: int) -> [int, int, List]:
+    """branch and bound algorithm to solve knapsack problem"""
+    import branch_and_bound
+
+    items = [(i.weight, i.value) for i in items]
+
+    value, weight, taken = branch_and_bound.solve_it(items, capacity)
+
     return value, weight, taken
 
 
@@ -100,6 +112,9 @@ def solve_it(input_data):
         value, weight, taken = dp_solver(items, capacity)
     # return dp[n][capacity], selected_items
 
+    # value, weight, taken = bb_solver(items, capacity)
+    # value, weight, taken = ortools_solver(items, capacity)
+
     print("value = ", value)
     print("weight = ", weight)
     print("taken = ", taken)
@@ -132,7 +147,7 @@ if __name__ == "__main__":
     #         input_data = input_data_file.read()
     #         print(solve_it(input_data))
 
-    file_location = r"data\ks_10000_0"
+    file_location = r"data\ks_4_0"
     # file_location = os.path.join("./data", file)
     with open(file_location, "r") as input_data_file:
         input_data = input_data_file.read()

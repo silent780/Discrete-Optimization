@@ -6,7 +6,7 @@ from __future__ import print_function
 import json
 import time
 import os
-from collections import namedtuple
+from collections import namedtuple0
 
 
 # Python 2/3 compatibility
