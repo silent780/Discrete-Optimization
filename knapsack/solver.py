@@ -1,9 +1,69 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+"""
+@File    :   solver.py
+@Time    :   2023/09/18 14:08:32
+@Author  :   glx 
+@Version :   1.0
+@Contact :   18095542g@connect.polyu.hk
+@Desc    :   this is a script for solving knapsack problem, I used three methods to solve it,
+            1. greedy algorithm
+            2. A* algorithm
+            3. dynamic programming
+"""
 
+# here put the import lib
 from collections import namedtuple
+from typing import List
 
 Item = namedtuple("Item", ["index", "value", "weight"])
+
+
+def greedy_solver(items, capacity):
+    value = 0
+    weight = 0
+    taken = [0] * len(items)
+    items.sort(key=lambda item: item.value / item.weight, reverse=True)
+    for item in items:
+        if weight + item.weight <= capacity:
+            taken[item.index] = 1
+            value += item.value
+            weight += item.weight
+    return value, weight, taken
+
+
+def dp_solver(items, capacity) -> [int, List]:
+    """
+    this is a function for solving knapsack problem using dynamic programming
+    """
+    weights = []
+    values = []
+    for i in items:
+        weights.append(i.weight)
+        values.append(i.value)
+    taken = [0 for _ in range(len(items))]
+
+    n = len(items)
+    dp = [[0] * (capacity + 1) for _ in range(n + 1)]
+
+    for i in range(1, n + 1):
+        for j in range(1, capacity + 1):
+            if weights[i - 1] > j:
+                dp[i][j] = dp[i - 1][j]
+            else:
+                dp[i][j] = max(
+                    dp[i - 1][j], dp[i - 1][j - weights[i - 1]] + values[i - 1]
+                )
+
+    # 回溯求解最优解
+    i, j = n, capacity
+    weight = 0
+    while i > 0 and j > 0:
+        if dp[i][j] != dp[i - 1][j]:
+            taken[i - 1] = 1
+            j -= weights[i - 1]
+            weight += weights[i - 1]
+        i -= 1
+    value = dp[n][capacity]
+    return value, weight, taken
 
 
 def solve_it(input_data):
@@ -23,42 +83,23 @@ def solve_it(input_data):
         parts = line.split()
         items.append(Item(i - 1, int(parts[0]), int(parts[1])))
 
-    # a trivial algorithm for filling the knapsack
-    # it takes items in-order until the knapsack is full
-    value = 0
-    weight = 0
-    taken = [0] * len(items)
-
     # method 1 : greedy algorithm
     # sort items by value/weight ratio
-    """
     items.sort(key=lambda item: item.value / item.weight, reverse=True)
+    if 200 < len(items) < 999:
+        value, weight, taken = greedy_solver(items, capacity)
 
-    for item in items:
-        if weight + item.weight <= capacity:
-            taken[item.index] = 1
-            value += item.value
-            weight += item.weight
-    """
+    # method 2: A_star algorithm for huge amount problem
+    elif len(items) > 1000:
+        import A_star
 
-    # method 2 : dynamic programming
+        value, weight, taken = A_star.knapsack_a_star(items=items, capacity=capacity)
 
-    dp = [[0 for _ in range(capacity + 1)] for _ in range(item_count + 1)]
-    for i in range(1, item_count + 1):
-        for j in range(1, capacity + 1):
-            if items[i - 1].weight <= j:
-                if (
-                    dp[i - 1][j]
-                    < dp[i - 1][j - items[i - 1].weight] + items[i - 1].value
-                ):
-                    taken[i - 1] = 1
-                    dp[i][j] = dp[i - 1][j - items[i - 1].weight] + items[i - 1].value
-                else:
-                    dp[i][j] = dp[i - 1][j]
-            else:
-                dp[i][j] = dp[i - 1][j]
-    value = dp[item_count][capacity]
-    # print the results
+    # method 3 : dynamic programming
+    else:
+        value, weight, taken = dp_solver(items, capacity)
+    # return dp[n][capacity], selected_items
+
     print("value = ", value)
     print("weight = ", weight)
     print("taken = ", taken)
@@ -71,13 +112,28 @@ def solve_it(input_data):
 
 if __name__ == "__main__":
     import sys
+    import os
 
-    if len(sys.argv) > 1:
-        file_location = sys.argv[1].strip()
-        with open(file_location, "r") as input_data_file:
-            input_data = input_data_file.read()
+    # if len(sys.argv) > 1:
+    #     file_location = sys.argv[1].strip()
+    #     with open(file_location, "r") as input_data_file:
+    #         input_data = input_data_file.read()
+    #         print(solve_it(input_data))
+    # else:
+    #     print(
+    #         "This test requires an input file.  Please select one from the data directory. (i.e. python solver.py ./data/ks_4_0)"
+    #     )
+
+    # list_dir = os.listdir("data")
+    # for file in list_dir:
+    #     # file_location = r"./data/ks_4_0"
+    #     file_location = os.path.join("./data", file)
+    #     with open(file_location, "r") as input_data_file:
+    #         input_data = input_data_file.read()
+    #         print(solve_it(input_data))
+
+    file_location = r"data\ks_10000_0"
+    # file_location = os.path.join("./data", file)
+    with open(file_location, "r") as input_data_file:
+        input_data = input_data_file.read()
         print(solve_it(input_data))
-    else:
-        print(
-            "This test requires an input file.  Please select one from the data directory. (i.e. python solver.py ./data/ks_4_0)"
-        )

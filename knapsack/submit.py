@@ -269,7 +269,7 @@ def login_dialog(assignment_key, results, credentials_file_location="_credential
     """
 
     success = False
-    tries = 0
+    tries = 00
 
     while not success:
         # stops infinate loop when credentials file is incorrect
